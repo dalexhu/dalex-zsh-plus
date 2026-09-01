@@ -99,8 +99,11 @@ curl -fsSLO https://raw.githubusercontent.com/dalexhu/dalex-zsh-plus/main/instal
 - **Non-root friendly.** Uses `sudo` when needed; on macOS it offers to install Homebrew and
   carries on without it if you decline.
 
-Verified on Debian 12, AlmaLinux 9 (containers) and macOS 15 (Apple silicon).
-Requires `bash` 3.2+, `curl`, and network access to github.com.
+Verified on Ubuntu 22.04 / 24.04 / 26.04, Debian 12 / 13, AlmaLinux 9 / 10 and
+macOS 15 (Apple silicon). Requires `bash` 3.2+, `curl`, and network access to github.com.
+
+`eza` only exists in the repos of Ubuntu 24.04+ / Debian 13+; on older releases it is
+skipped with a warning and `ll` falls back to plain `ls`.
 
 > Tip: starship's icons need a [Nerd Font](https://www.nerdfonts.com) in your terminal.
 
@@ -195,8 +198,10 @@ curl -fsSLO https://raw.githubusercontent.com/dalexhu/dalex-zsh-plus/main/instal
   `curl`/`wget` 仅在缺失时才装(避免 `curl-minimal` 冲突导致整个事务失败)。
 - **非 root 友好**:需要时自动用 `sudo`;macOS 无 Homebrew 时会询问是否安装,拒绝也能继续。
 
-已在 Debian 12、AlmaLinux 9 容器与 macOS 15(Apple 芯片)上验证。
-依赖:`bash` 3.2+、`curl`、可访问 github.com。
+已在 Ubuntu 22.04 / 24.04 / 26.04、Debian 12 / 13、AlmaLinux 9 / 10 与
+macOS 15(Apple 芯片)上验证。依赖:`bash` 3.2+、`curl`、可访问 github.com。
+
+`eza` 只在 Ubuntu 24.04+ / Debian 13+ 的仓库里有;更老的版本会 warn 跳过,`ll` 退回普通 `ls`。
 
 > 提示:starship 的图标需要终端使用 [Nerd Font](https://www.nerdfonts.com)。
 

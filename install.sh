@@ -13,7 +13,7 @@
 
 set -euo pipefail
 
-VERSION="1.1.0"
+VERSION="1.1.1"
 
 # ---------------------------------------------------------------------------
 # selectable components — key | default | label | description
@@ -504,6 +504,14 @@ install_sdkman() {
   step "SDKMAN!"
   if [ -s "$HOME/.sdkman/bin/sdkman-init.sh" ]; then
     ok "SDKMAN! already installed"
+    return 0
+  fi
+  # the SDKMAN! installer aborts without zip/unzip, which minimal images lack
+  if ! has unzip || ! has zip; then
+    pkg_install zip unzip
+  fi
+  if ! has unzip; then
+    warn "SDKMAN! needs unzip; install it and re-run with --with sdkman"
     return 0
   fi
   if curl -fsSL "https://get.sdkman.io?rcupdate=false" | bash >/dev/null 2>&1; then
