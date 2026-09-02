@@ -210,3 +210,39 @@ macOS 15(Apple 芯片)上验证。依赖:`bash` 3.2+、`curl`、可访问 github
 ## License
 
 MIT
+
+---
+
+## Disclaimer / 免责声明
+
+**English.** This is a personal utility, shared in case it is useful to someone else, and
+provided **as is, without warranty of any kind, express or implied**. The author accepts no
+liability for any loss or damage arising from its use.
+
+It is not affiliated with, endorsed by, sponsored by or supported by the Zsh project, Oh My
+Zsh, Starship, SDKMAN!, nvm, Homebrew, Apple, Red Hat, Canonical, the Debian or AlmaLinux
+projects, the authors of any plugin or tool it installs, or any other project or vendor named
+in this repository. All product names, logos and trademarks are the property of their
+respective owners, and are used here only to identify the software the script installs or
+configures.
+
+The script installs software on the machine it runs on: it invokes the system package manager
+with sudo, downloads and executes installer scripts published by the upstream projects listed
+above, clones plugin repositories from GitHub, writes `~/.zshrc` and `~/.config/starship.toml`,
+and can change the login shell. Each of those components is covered by its own license and is
+obtained directly from its own publisher; this repository redistributes none of them. Nothing
+in this repository is legal advice.
+
+**中文。** 这是个人自用工具,公开出来只是想着或许对别人也有用,
+**按原样提供,不附带任何明示或默示的担保**。作者对因使用本项目而产生的任何损失或损害
+不承担责任。
+
+本项目与 Zsh 项目、Oh My Zsh、Starship、SDKMAN!、nvm、Homebrew、Apple、Red Hat、Canonical、
+Debian 与 AlmaLinux 项目、它所安装的任何插件或工具的作者,以及本仓库中提及的任何其他项目
+或厂商,**均无关联,未获其背书、赞助或支持**。所有产品名称、标识与商标均归其各自所有者所有,
+在此仅用于指明本脚本所安装或配置的软件对象。
+
+本脚本会在其运行的机器上安装软件:以 sudo 调用系统包管理器、下载并执行上述上游项目发布的
+安装脚本、从 GitHub 克隆插件仓库、写入 `~/.zshrc` 与 `~/.config/starship.toml`,
+并可能修改登录 shell。其中每个组件都受其自身许可约束,且均直接从其各自发布方获取;
+本仓库不分发其中任何一项。本仓库中的任何内容均不构成法律意见。
