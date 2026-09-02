@@ -207,12 +207,6 @@ macOS 15(Apple 芯片)上验证。依赖:`bash` 3.2+、`curl`、可访问 github
 
 ---
 
-## License
-
-MIT
-
----
-
 ## Disclaimer / 免责声明
 
 **English.** This is a personal utility, shared in case it is useful to someone else, and
@@ -246,3 +240,9 @@ Debian 与 AlmaLinux 项目、它所安装的任何插件或工具的作者,以�
 安装脚本、从 GitHub 克隆插件仓库、写入 `~/.zshrc` 与 `~/.config/starship.toml`,
 并可能修改登录 shell。其中每个组件都受其自身许可约束,且均直接从其各自发布方获取;
 本仓库不分发其中任何一项。本仓库中的任何内容均不构成法律意见。
+
+---
+
+## License
+
+MIT
