@@ -83,6 +83,10 @@ curl -fsSLO https://raw.githubusercontent.com/dalexhu/dalex-zsh-plus/main/instal
 - A generated, clearly marked config — your own tweaks go in `~/.zshrc.local`, which is
   sourced at the end and survives every re-run.
 - The plugin list matches exactly what you selected, with `zsh-syntax-highlighting` last.
+  `zsh-completions` is put on `fpath` before `compinit` instead of in the plugin list, which is
+  the only way its completions actually register under oh-my-zsh.
+- Homebrew's `shellenv` is applied when Homebrew is present (`/opt/homebrew`, `/usr/local`,
+  Linuxbrew), so brew-installed tools are on PATH even without a `~/.zprofile`.
 - Missing plugin directories are filtered out at startup, so a partial install still opens a shell.
 - 50 000 lines of shared, de-duplicated history; prefix search on ↑/↓.
 - Debian aliases fixed up automatically (`bat`→`batcat`, `fd`→`fdfind`).
@@ -92,15 +96,20 @@ curl -fsSLO https://raw.githubusercontent.com/dalexhu/dalex-zsh-plus/main/instal
 - **Idempotent.** Re-running updates oh-my-zsh and its plugins via `git pull`, and rewrites
   `~/.zshrc` only when the content actually changes.
 - **Never clobbers silently.** Anything it overwrites is backed up as `*.bak.YYYYMMDDHHMMSS`.
-  An existing `~/.zshrc` that this script did not write is left untouched unless you pass `--force`.
+  An existing `~/.zshrc` that this script did not write is left untouched unless you say so:
+  interactively it asks; with `--yes` it needs `--force`. When it is left alone the run ends
+  with a warning and exit code 1, because the plugins are installed but not enabled.
 - **Distro aware.** Packages missing from a repo are skipped with a warning instead of aborting;
   RHEL-family hosts get EPEL enabled first, and `curl`/`wget` are only installed when absent
   (so `curl-minimal` conflicts can't break the transaction).
 - **Non-root friendly.** Uses `sudo` when needed; on macOS it offers to install Homebrew and
-  carries on without it if you decline.
+  carries on without it if you decline. A Homebrew that is installed but not yet on PATH
+  (ssh sessions, `curl | bash`) is found in its standard prefix. macOS's own zsh and git are
+  used as they are, and the login shell is switched to `/bin/zsh`, which `/etc/shells` already
+  lists, so `chsh` needs no root.
 
 Verified on Ubuntu 22.04 / 24.04 / 26.04, Debian 12 / 13, AlmaLinux 9 / 10 and
-macOS 15 (Apple silicon). Requires `bash` 3.2+, `curl`, and network access to github.com.
+macOS 15 / 26 (Apple silicon). Requires `bash` 3.2+, `curl`, and network access to github.com.
 
 `eza` only exists in the repos of Ubuntu 24.04+ / Debian 13+; on older releases it is
 skipped with a warning and `ll` falls back to plain `ls`.
@@ -185,6 +194,10 @@ curl -fsSLO https://raw.githubusercontent.com/dalexhu/dalex-zsh-plus/main/instal
 
 - 顶部有明确标记;个人配置写进 `~/.zshrc.local`,末尾自动 source,重装不丢。
 - 插件列表与你的勾选完全一致,`zsh-syntax-highlighting` 始终排最后。
+  `zsh-completions` 不走插件列表,而是在 `compinit` 之前加进 `fpath` —— 在 oh-my-zsh 下
+  只有这样它的补全才真正注册得上。
+- 检测到 Homebrew(`/opt/homebrew`、`/usr/local`、Linuxbrew)时自动执行 `shellenv`,
+  没有 `~/.zprofile` 也能用到 brew 装的工具。
 - 启动时会剔除目录不存在的插件,部分安装失败也能正常进 shell。
 - 历史 50000 条、去重、跨会话共享;↑/↓ 为前缀搜索。
 - Debian 上自动把 `bat`→`batcat`、`fd`→`fdfind` 映射好。
@@ -193,13 +206,17 @@ curl -fsSLO https://raw.githubusercontent.com/dalexhu/dalex-zsh-plus/main/instal
 
 - **幂等**:重复执行时 oh-my-zsh 与插件走 `git pull`;`~/.zshrc` 内容不变就不重写。
 - **不静默覆盖**:凡是覆盖都会生成 `*.bak.YYYYMMDDHHMMSS` 备份;不是本脚本写的
-  `~/.zshrc` 默认不动,要覆盖得显式加 `--force`。
+  `~/.zshrc` 不会擅自动:交互模式下会问你,`--yes` 模式下必须加 `--force`。
+  如果最终没动,脚本会以警告收尾并返回退出码 1,因为插件装了但没启用。
 - **适配发行版**:仓库里没有的包只 warn 跳过不中断;RHEL 系会先启用 EPEL,
   `curl`/`wget` 仅在缺失时才装(避免 `curl-minimal` 冲突导致整个事务失败)。
 - **非 root 友好**:需要时自动用 `sudo`;macOS 无 Homebrew 时会询问是否安装,拒绝也能继续。
+  Homebrew 装了但还不在 PATH 里(ssh 会话、`curl | bash`)也能在标准目录找到。
+  macOS 自带的 zsh 和 git 直接用,登录 shell 切到 `/etc/shells` 已收录的 `/bin/zsh`,
+  `chsh` 不需要 root。
 
 已在 Ubuntu 22.04 / 24.04 / 26.04、Debian 12 / 13、AlmaLinux 9 / 10 与
-macOS 15(Apple 芯片)上验证。依赖:`bash` 3.2+、`curl`、可访问 github.com。
+macOS 15 / 26(Apple 芯片)上验证。依赖:`bash` 3.2+、`curl`、可访问 github.com。
 
 `eza` 只在 Ubuntu 24.04+ / Debian 13+ 的仓库里有;更老的版本会 warn 跳过,`ll` 退回普通 `ls`。
 

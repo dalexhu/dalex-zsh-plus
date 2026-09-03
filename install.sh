@@ -13,7 +13,7 @@
 
 set -euo pipefail
 
-VERSION="1.1.1"
+VERSION="1.2.0"
 
 # ---------------------------------------------------------------------------
 # selectable components — key | default | label | description
@@ -259,6 +259,7 @@ SUDO=""
 ZSH_DIR=""
 ZSH_CUSTOM_DIR=""
 ZSHRC_PREEXISTED=0   # set in main() before anything can create ~/.zshrc
+ZSHRC_SKIPPED=0      # set when an unmanaged ~/.zshrc was left alone
 
 detect_platform() {
   case "$(uname -s)" in
@@ -324,6 +325,17 @@ pkg_install() {
 # ---------------------------------------------------------------------------
 ensure_homebrew() {
   [ "$OS" = "macos" ] || return 0
+  # Homebrew is usually installed but not yet on PATH here (ssh, curl | bash, or a
+  # ~/.zprofile without shellenv), so look in its standard prefixes before giving up.
+  local p
+  if ! has brew; then
+    for p in /opt/homebrew/bin/brew /usr/local/bin/brew; do
+      if [ -x "$p" ]; then
+        eval "$("$p" shellenv)"
+        break
+      fi
+    done
+  fi
   if has brew; then
     ok "homebrew present: $(command -v brew)"
     return 0
@@ -351,7 +363,9 @@ install_base_packages() {
   else
     pkg_refresh
     case "$OS" in
-      macos)  pkg_install zsh git ;;
+      macos)  # macOS ships both; only pull them from brew when actually missing
+              has zsh || pkg_install zsh
+              git --version >/dev/null 2>&1 || pkg_install git ;;
       debian) pkg_install zsh git curl wget ca-certificates procps file ;;
       rhel)   pkg_install zsh
               # RHEL ships curl-minimal / wget2; only pull the full package when missing,
@@ -527,8 +541,18 @@ write_zshrc() {
   # Anything created during this run (e.g. the oh-my-zsh template) is ours to replace.
   if [ -f "$rc" ] && [ "$FORCE" -eq 0 ] && [ "$ZSHRC_PREEXISTED" -eq 1 ] \
      && ! grep -q 'dalex-zsh-plus' "$rc" 2>/dev/null; then
-    warn "existing ~/.zshrc is not managed by dalex-zsh-plus; leaving it untouched (use --force to replace)"
-    return 0
+    warn "existing ~/.zshrc was not written by dalex-zsh-plus"
+    local replace=0
+    if [ "$ASSUME_YES" -eq 0 ] && [ -t 0 ]; then
+      printf "     Replace it? A timestamped backup is kept; put your own lines in ~/.zshrc.local. [y/N] "
+      local reply; read -r reply
+      case "$reply" in [yY]*) replace=1 ;; esac
+    fi
+    if [ "$replace" -eq 0 ]; then
+      warn "leaving ~/.zshrc untouched; the selected plugins are installed but NOT enabled (re-run with --force)"
+      ZSHRC_SKIPPED=1
+      return 0
+    fi
   fi
   local tmp="$rc.dalex.tmp.$$"
   write_zshrc_content "$tmp"
@@ -548,13 +572,19 @@ write_zshrc() {
 set_default_shell() {
   [ "$DO_CHSH" -eq 1 ] || return 0
   step "Default shell"
-  local zsh_path
+  local zsh_path sudo_cmd="$SUDO"
   zsh_path="$(command -v zsh)"
   case "${SHELL:-}" in
     */zsh) ok "login shell is already zsh"; return 0 ;;
   esac
+  # Prefer a zsh that /etc/shells already lists (on macOS that is /bin/zsh, not the
+  # Homebrew one) so chsh does not need root at all.
+  if ! grep -qx "$zsh_path" /etc/shells 2>/dev/null && [ -x /bin/zsh ] && grep -qx /bin/zsh /etc/shells 2>/dev/null; then
+    zsh_path=/bin/zsh
+  fi
   if ! grep -qx "$zsh_path" /etc/shells 2>/dev/null; then
-    echo "$zsh_path" | $SUDO tee -a /etc/shells >/dev/null 2>&1 || warn "could not register $zsh_path in /etc/shells"
+    [ -z "$sudo_cmd" ] && [ "$(id -u)" -ne 0 ] && has sudo && sudo_cmd="sudo"
+    echo "$zsh_path" | $sudo_cmd tee -a /etc/shells >/dev/null 2>&1 || warn "could not register $zsh_path in /etc/shells"
   fi
   if chsh -s "$zsh_path" >/dev/null 2>&1; then
     ok "login shell set to $zsh_path (takes effect on next login)"
@@ -580,7 +610,6 @@ zshrc_plugin_list() {
   echo command-not-found
   echo docker
   echo docker-compose
-  selected completions     && echo zsh-completions
   selected autosuggestions && echo zsh-autosuggestions
   selected history-search  && echo zsh-history-substring-search
   selected you-should-use  && echo you-should-use
@@ -625,6 +654,12 @@ done
 plugins=($_dz_plugins)
 unset _dz_plugins _dz_p
 
+# zsh-completions has to be on fpath before compinit runs, and oh-my-zsh runs
+# compinit before it loads plugins — so it goes here, not in the plugins list.
+_dz_comp="${ZSH_CUSTOM:-$ZSH/custom}/plugins/zsh-completions/src"
+[[ -d "$_dz_comp" ]] && fpath+=("$_dz_comp")
+unset _dz_comp
+
 source $ZSH/oh-my-zsh.sh
 
 # --- history ---------------------------------------------------------------
@@ -646,6 +681,13 @@ bindkey '^[[1;5D' backward-word
 export LANG=${LANG:-en_US.UTF-8}
 export EDITOR=${EDITOR:-vim}
 export PATH="$HOME/bin:$HOME/.local/bin:/usr/local/bin:$PATH"
+
+# Homebrew is not on the default PATH on Apple silicon (or Linuxbrew); put it there
+# before anything below probes for eza, zoxide, starship, fzf.
+for _dz_brew in /opt/homebrew/bin/brew /usr/local/bin/brew /home/linuxbrew/.linuxbrew/bin/brew; do
+  if [[ -x $_dz_brew ]]; then eval "$($_dz_brew shellenv)"; break; fi
+done
+unset _dz_brew
 
 # --- aliases ---------------------------------------------------------------
 alias ll='ls -alFh'
@@ -857,6 +899,11 @@ main() {
   set_default_shell
 
   step "Done"
+  if [ "$ZSHRC_SKIPPED" -eq 1 ]; then
+    warn "~/.zshrc was NOT updated, so nothing selected above is active in your shell."
+    warn "re-run with --force to let dalex-zsh-plus manage ~/.zshrc (your file is backed up first)"
+    exit 1
+  fi
   ok "start a new shell, or run: exec zsh"
   if selected starship; then
     log "starship needs a Nerd Font in your terminal for the icons to render"
