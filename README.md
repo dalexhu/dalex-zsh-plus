@@ -95,6 +95,8 @@ curl -fsSLO https://raw.githubusercontent.com/dalexhu/dalex-zsh-plus/main/instal
 
 - **Idempotent.** Re-running updates oh-my-zsh and its plugins via `git pull`, and rewrites
   `~/.zshrc` only when the content actually changes.
+- **No update prompt at login.** The generated `~/.zshrc` sets `zstyle ':omz:update' mode disabled`,
+  so oh-my-zsh never stops a login to ask "Would you like to update?". Re-run the installer to update.
 - **Never clobbers silently.** Anything it overwrites is backed up as `*.bak.YYYYMMDDHHMMSS`.
   An existing `~/.zshrc` that this script did not write is left untouched unless you say so:
   interactively it asks; with `--yes` it needs `--force`. When it is left alone the run ends

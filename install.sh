@@ -13,7 +13,7 @@
 
 set -euo pipefail
 
-VERSION="1.2.0"
+VERSION="1.2.1"
 
 # ---------------------------------------------------------------------------
 # selectable components — key | default | label | description
@@ -629,6 +629,10 @@ export ZSH="$HOME/.oh-my-zsh"
 
 # Prompt: starship takes over when installed, otherwise this theme is used.
 ZSH_THEME="robbyrussell"
+
+# No "Would you like to update?" question at login (it blocks ssh sessions and
+# scripted logins); re-running install.sh is what updates oh-my-zsh and plugins.
+zstyle ':omz:update' mode disabled
 
 # --- plugins ---------------------------------------------------------------
 # zsh-syntax-highlighting must stay last.
